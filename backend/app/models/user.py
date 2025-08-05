@@ -10,4 +10,5 @@ class User(Base):
     password=Column(String,nullable=False)
     full_name=Column(String,nullable=True)
     is_active=Column(Boolean,default=False)
+    api_key=Column(String,nullable=True)  # Store user's API key
     

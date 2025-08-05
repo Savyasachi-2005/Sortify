@@ -12,9 +12,11 @@ class Settings(BaseSettings):
     mail_from : str
     mail_port : int
     mail_server : str
+    
 
     class Config:
         env_file = Path(__file__).parent.parent.parent / ".env"
+        extra = "ignore"  # Ignore extra fields from .env file
         
 settings=Settings()
 

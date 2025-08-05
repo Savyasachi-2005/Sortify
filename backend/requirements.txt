@@ -12,3 +12,4 @@ pydantic-settings
 jose
 python-multipart
 fastapi_mail
+requests

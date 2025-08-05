@@ -16,7 +16,7 @@ import {
   Zap
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import axios from 'axios';
+import api, { updateApiKey, sendTaskResultEmail } from '../services/api';  // Use our custom API service
 import toast from 'react-hot-toast';
 
 const Transform = () => {
@@ -28,14 +28,27 @@ const Transform = () => {
   const [apiKey, setApiKey] = useState('');
   const [tempApiKey, setTempApiKey] = useState('');
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [originalTasks, setOriginalTasks] = useState([]);
+  const [processedTasks, setProcessedTasks] = useState([]);
+  const [isEmailing, setIsEmailing] = useState(false);
 
   useEffect(() => {
-    // Check for stored API key
-    const storedApiKey = localStorage.getItem('apiKey');
-    if (storedApiKey) {
-      setApiKey(storedApiKey);
-    }
-  }, []);
+    // Fetch user profile to get stored API key
+    const fetchUserProfile = async () => {
+      if (isAuthenticated) {
+        try {
+          const response = await api.get('/api/users/me');
+          if (response.data.api_key) {
+            setApiKey(response.data.api_key);
+          }
+        } catch (error) {
+          console.error('Failed to fetch user profile:', error);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [isAuthenticated]);
 
   useEffect(() => {
     // Show API key modal on first login if no key is set
@@ -50,7 +63,8 @@ const Transform = () => {
       return;
     }
 
-    if (!apiKey) {
+    // Check if user has API key set in their profile
+    if (!apiKey || !apiKey.trim()) {
       setShowApiKeyModal(true);
       return;
     }
@@ -64,33 +78,90 @@ const Transform = () => {
     setOutput('');
 
     try {
-      const response = await axios.post('/api/transform', {
-        input: input.trim(),
-        api_key: apiKey
+      // Split input into tasks by new line or comma
+      const tasks = input
+        .trim()
+        .split(/[,\n]/)
+        .map(item => item.trim())
+        .filter(item => item.length > 0);
+
+      // Store original tasks for email
+      setOriginalTasks(tasks);
+
+      console.log("Sending tasks:", tasks);
+      console.log("API Key:", apiKey);
+      
+      // Add a custom header with the token instead of using withCredentials
+      const token = localStorage.getItem('access_token');
+      console.log("Token:", token);
+      
+      // Prepare request data - API key is stored in user profile
+      const requestData = {
+        tasks: tasks
+      };
+      
+      console.log("Request data:", requestData);
+      
+      // Using our API service with explicit auth header
+      const response = await api.post('/api/ai/transform', requestData, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
-      setOutput(response.data.result);
-      toast.success('Tasks transformed successfully!');
+      // Format and display the output
+      if (response.data && response.data.processed_task) {
+        const formattedOutput = formatOutput(response.data.processed_task);
+        setOutput(formattedOutput);
+        
+        // Store processed tasks for email
+        setProcessedTasks(response.data.processed_task);
+        
+        toast.success('Tasks transformed successfully!');
+      } else {
+        toast.error('Invalid response format from server');
+      }
     } catch (error) {
       console.error('Transform error:', error);
-      const message = error.response?.data?.detail || 'Failed to transform tasks';
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      console.error('Error headers:', error.response?.headers);
+      
+      let message = 'Failed to transform tasks';
+      if (error.response?.data?.detail) {
+        message = error.response.data.detail;
+      } else if (error.response?.data?.message) {
+        message = error.response.data.message;
+      } else if (error.message) {
+        message = error.message;
+      }
+      
       toast.error(message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSaveApiKey = () => {
+  const handleSaveApiKey = async () => {
     if (!tempApiKey.trim()) {
       toast.error('Please enter a valid API key');
       return;
     }
 
-    setApiKey(tempApiKey);
-    localStorage.setItem('apiKey', tempApiKey);
-    setShowApiKeyModal(false);
-    setTempApiKey('');
-    toast.success('API key saved successfully!');
+    try {
+      // Save API key to database
+      await updateApiKey(tempApiKey);
+      
+      // Update local state
+      setApiKey(tempApiKey);
+      setShowApiKeyModal(false);
+      setTempApiKey('');
+      toast.success('API key saved successfully!');
+    } catch (error) {
+      console.error('Failed to save API key:', error);
+      const message = error.response?.data?.detail || 'Failed to save API key';
+      toast.error(message);
+    }
   };
 
   const handleCopyResult = async () => {
@@ -104,13 +175,32 @@ const Transform = () => {
     }
   };
 
-  const handleEmailResult = () => {
-    if (!output) return;
+  const handleEmailResult = async () => {
+    if (!output || originalTasks.length === 0 || processedTasks.length === 0) {
+      toast.error('No results to email. Please transform some tasks first.');
+      return;
+    }
 
-    const subject = 'My Organized Tasks from SortIQ';
-    const body = `Here are my organized tasks:\n\n${output}`;
-    const mailto = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.open(mailto);
+    setIsEmailing(true);
+    try {
+      await sendTaskResultEmail(originalTasks, processedTasks);
+      toast.success('Task results sent to your email!');
+    } catch (error) {
+      console.error('Failed to send email:', error);
+      const message = error.response?.data?.detail || 'Failed to send email';
+      toast.error(message);
+    } finally {
+      setIsEmailing(false);
+    }
+  };
+  
+  // Helper function to format processed tasks into readable text
+  const formatOutput = (processedTasks) => {
+    return processedTasks.map(task => (
+      `📝 Original: ${task.task}\n` +
+      `✅ SMART: ${task.smart_task}\n` +
+      `🏷️ Priority: ${task.priority}\n`
+    )).join('\n\n');
   };
 
   const exampleInputs = [
@@ -302,11 +392,18 @@ const Transform = () => {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={handleEmailResult}
-                        className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors flex items-center space-x-1"
+                        disabled={isEmailing}
+                        className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Email results"
                       >
-                        <Mail className="w-5 h-5" />
-                        <span className="text-xs sm:text-sm hidden sm:inline">Email</span>
+                        {isEmailing ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                          <Mail className="w-5 h-5" />
+                        )}
+                        <span className="text-xs sm:text-sm hidden sm:inline">
+                          {isEmailing ? 'Sending...' : 'Email'}
+                        </span>
                       </motion.button>
                     </div>
                   )}
@@ -592,7 +689,7 @@ const Transform = () => {
                       <Key className="w-5 h-5 text-white" />
                     </div>
                     <h3 className="text-xl font-bold text-white">
-                      API Key Setup
+                      API Key Required
                     </h3>
                   </div>
                   <motion.button
@@ -609,7 +706,7 @@ const Transform = () => {
               <div className="p-6">
                 <div className="mb-6">
                   <p className="text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">
-                    To use our AI transformation feature, please provide your API key from OpenRouter (recommended) or OpenAI.
+                    You must provide your own API key from OpenRouter (recommended) or OpenAI to use the AI transformation feature. Your API key will be securely stored in your profile and won't need to be entered again.
                   </p>
                   
                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-100 dark:border-blue-800/50 rounded-xl p-5 mb-6">
