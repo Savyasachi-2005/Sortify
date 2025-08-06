@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { refreshToken } from '../pages/TokenRefresh';
 
 // Create a custom axios instance
 const api = axios.create({
@@ -22,15 +23,67 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Flag to prevent multiple refresh attempts
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  
+  failedQueue = [];
+};
+
 // Add a response interceptor to handle auth errors
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // If we get a 401, clear the token and redirect to login
-      localStorage.removeItem('access_token');
-      window.location.href = '/login';
+  async (error) => {
+    const originalRequest = error.config;
+    
+    // If the error is 401 and we haven't already tried to refresh the token
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // If we're already refreshing, add this request to the queue
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(token => {
+            originalRequest.headers['Authorization'] = `Bearer ${token}`;
+            return axios(originalRequest);
+          })
+          .catch(err => Promise.reject(err));
+      }
+      
+      originalRequest._retry = true;
+      isRefreshing = true;
+      
+      try {
+        // Try to refresh the token
+        const newToken = await refreshToken();
+        
+        // Update the header for this request
+        originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
+        
+        // Process other requests in the queue
+        processQueue(null, newToken);
+        
+        return axios(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError);
+        
+        // Redirect to login page
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
     }
+    
     return Promise.reject(error);
   }
 );
@@ -46,6 +99,18 @@ export const sendTaskResultEmail = (tasks, processedTasks) => {
     tasks: tasks,
     processed_tasks: processedTasks
   });
+};
+// Task management
+export const getTasks = () => {
+  return api.get('/api/tasks/');
+};
+
+export const deleteTask = (taskId) => {
+  return api.delete(`/api/tasks/${taskId}`);
+};
+
+export const updateTaskStatus = (taskId, status) => {
+  return api.patch(`/api/tasks/${taskId}/status`, { status });
 };
 
 export default api;

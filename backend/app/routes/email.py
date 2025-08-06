@@ -24,38 +24,118 @@ async def send_task_result(
 ):
     """Send task results to user's email"""
     try:
-        # Format the email content
-        original_tasks = "\n".join([f"• {task}" for task in email_data.tasks])
+        # Format the email content into a beautiful HTML table
+        original_tasks_html = "".join([f"<li>{task}</li>" for task in email_data.tasks])
         
-        processed_content = ""
+        processed_tasks_html = ""
         for task in email_data.processed_tasks:
-            processed_content += f"""
-📝 Original: {task['task']}
-✅ SMART: {task['smart_task']}
-🏷️ Priority: {task['priority']}
+            priority_color = {
+                "High": "#ff6b6b",
+                "Medium": "#feca57",
+                "Low": "#48dbfb"
+            }.get(task['priority'], "#ced6e0")
 
-"""
+            processed_tasks_html += f"""
+            <tr>
+                <td>{task['task']}</td>
+                <td>{task['smart_task']}</td>
+                <td style="color: {priority_color}; font-weight: bold;">{task['priority']}</td>
+            </tr>
+            """
         
         email_body = f"""
-Hello {current_user.full_name or current_user.username}!
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Organized Tasks from SortIQ</title>
+    <style>
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }}
+        .container {{
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }}
+        h1, h2 {{
+            color: #2c3e50;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }}
+        h1 {{ font-size: 24px; }}
+        h2 {{ font-size: 20px; margin-top: 30px; }}
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }}
+        th, td {{
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }}
+        th {{
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }}
+        ul {{
+            padding-left: 20px;
+        }}
+        .footer {{
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hello {current_user.full_name or current_user.username}!</h1>
+        <p>Here are your organized tasks from SortIQ:</p>
 
-Here are your organized tasks from SortIQ:
+        <h2>📋 Original Tasks</h2>
+        <ul>{original_tasks_html}</ul>
 
-📋 ORIGINAL TASKS:
-{original_tasks}
+        <h2>✨ Transformed Tasks</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Original Task</th>
+                    <th>SMART Task</th>
+                    <th>Priority</th>
+                </tr>
+            </thead>
+            <tbody>
+                {processed_tasks_html}
+            </tbody>
+        </table>
 
-✨ TRANSFORMED TASKS:
-{processed_content}
-
-Best regards,
-The SortIQ Team
+        <p class="footer">
+            Best regards,<br>
+            The SortIQ Team
+        </p>
+    </div>
+</body>
+</html>
         """
         
         # Send the email
-        await send_email(
+        await send_verification_link(
             subject="Your Organized Tasks from SortIQ",
             body=email_body,
-            to_email=current_user.email
+            to=current_user.email,
+            subtype="html"
         )
         
         logger.info(f"Task results sent to {current_user.email}")

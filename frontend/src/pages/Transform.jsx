@@ -110,12 +110,12 @@ const Transform = () => {
       });
 
       // Format and display the output
-      if (response.data && response.data.processed_task) {
-        const formattedOutput = formatOutput(response.data.processed_task);
+      if (response.data && response.data.processed_tasks) {
+        const formattedOutput = formatOutput(response.data.processed_tasks);
         setOutput(formattedOutput);
         
         // Store processed tasks for email
-        setProcessedTasks(response.data.processed_task);
+        setProcessedTasks(response.data.processed_tasks);
         
         toast.success('Tasks transformed successfully!');
       } else {
@@ -123,20 +123,44 @@ const Transform = () => {
       }
     } catch (error) {
       console.error('Transform error:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      console.error('Error headers:', error.response?.headers);
       
       let message = 'Failed to transform tasks';
+      let details = '';
+      
       if (error.response?.data?.detail) {
         message = error.response.data.detail;
-      } else if (error.response?.data?.message) {
-        message = error.response.data.message;
+        details = `Status: ${error.response.status}`;
+        
+        // Log additional details for debugging
+        console.error('Full error response:', {
+          status: error.response.status,
+          data: error.response.data,
+          headers: error.response.headers
+        });
+        
+        if (error.response.status === 500) {
+          // For 500 errors, try to get more specific error info
+          if (typeof error.response.data === 'object') {
+            details = JSON.stringify(error.response.data, null, 2);
+          }
+        }
       } else if (error.message) {
         message = error.message;
+        if (error.config) {
+          details = `Request URL: ${error.config.url}\nMethod: ${error.config.method}`;
+        }
       }
       
-      toast.error(message);
+      // Show both the main error and details
+      toast.error(
+        <div>
+          <div>{message}</div>
+          {details && (
+            <div className="mt-2 text-sm opacity-75 whitespace-pre-wrap">{details}</div>
+          )}
+        </div>,
+        { duration: 5000 } // Show for 5 seconds
+      );
     } finally {
       setIsLoading(false);
     }
@@ -197,7 +221,7 @@ const Transform = () => {
   // Helper function to format processed tasks into readable text
   const formatOutput = (processedTasks) => {
     return processedTasks.map(task => (
-      `📝 Original: ${task.task}\n` +
+      `📝 Original: ${task.original_task}\n` +
       `✅ SMART: ${task.smart_task}\n` +
       `🏷️ Priority: ${task.priority}\n`
     )).join('\n\n');

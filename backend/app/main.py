@@ -1,7 +1,7 @@
 from core.db import Base, engine
 from models.user import User
 from fastapi import FastAPI
-from routes import register, user, email_verify, ai, email
+from routes import register, user, email_verify, ai, email,tasks
 from fastapi.middleware.cors import CORSMiddleware
 
 # Clear existing tables and recreate
@@ -27,6 +27,7 @@ app.include_router(register.router)
 app.include_router(user.router)
 app.include_router(email_verify.apirouter)
 app.include_router(email.router)
+app.include_router(tasks.router)
 
 @app.get("/")
 def root():

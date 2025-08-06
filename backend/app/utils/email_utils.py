@@ -14,12 +14,12 @@ conf= ConnectionConfig(
     USE_CREDENTIALS = True,
     VALIDATE_CERTS = True
 )
-async def send_verification_link(to: str, subject: str, body: str):
+async def send_verification_link(to: str, subject: str, body: str, subtype: str = "html"):
     message = MessageSchema(
         subject=subject,
         recipients=[to],
         body=body,
-        subtype="html"
+        subtype=subtype
     )
 
     fm = FastMail(conf)

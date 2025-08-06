@@ -23,13 +23,7 @@ const History = () => {
   const [expandedItems, setExpandedItems] = useState(new Set());
 
   useEffect(() => {
-    const lastTransformTime = localStorage.getItem('lastTransformTime');
     fetchTasks();
-    
-    // Set up interval to check for updates
-    const intervalId = setInterval(fetchTasks, 5000); // Check every 5 seconds
-    
-    return () => clearInterval(intervalId); // Cleanup on unmount
   }, []);
 
   const fetchTasks = async () => {
@@ -110,7 +104,7 @@ const History = () => {
           <div className="w-12 h-12 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center mx-auto mb-4">
             <HistoryIcon className="w-6 h-6 text-primary-600 animate-pulse" />
           </div>
-          <p className="text-gray-600 dark:text-gray-400">Loading your transformation history...</p>
+          <p className="text-gray-600 dark:text-gray-400">Loading your task history...</p>
         </motion.div>
       </div>
     );
@@ -130,10 +124,10 @@ const History = () => {
             <HistoryIcon className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Transformation History
+            Task History
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            View all your past AI-powered task transformations and revisit your organized lists.
+            View and manage all your AI-transformed tasks.
           </p>
         </motion.div>
 
@@ -148,10 +142,10 @@ const History = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
-              placeholder="Search your transformations..."
+              placeholder="Search your tasks..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="input-field pl-10"
+              className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors duration-200"
             />
           </div>
         </motion.div>
@@ -175,7 +169,7 @@ const History = () => {
                 <p className="text-gray-600 dark:text-gray-300 mb-6">
                   {searchTerm 
                     ? 'Try adjusting your search terms' 
-                    : 'Start by adding your first task!'
+                    : 'Start by transforming your first task list!'
                   }
                 </p>
                 {!searchTerm && (

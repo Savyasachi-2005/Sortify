@@ -1,27 +1,33 @@
-from pydantic import BaseModel, UUID4
-from typing import List,Optional
+from pydantic import BaseModel
+from typing import List, Optional
+from datetime import datetime
 
-class TaskInput(BaseModel):
-    tasks:List[str]
-    user_id:Optional[int] = None
-    
-class ProcessedTask(BaseModel):
-    task: str
+class TaskBase(BaseModel):
+    original_task: str
     smart_task: str
     priority: str
-    
-class TaskOutput(BaseModel):
-    processed_task : List[ProcessedTask]
-
 
 class TaskInput(BaseModel):
-    tasks:List[str]
-    user_id:Optional[int] = None
-    
-class ProcessedTask(BaseModel):
-    task: str
-    smart_task: str
-    priority: str
-    
+    tasks: List[str]
+    user_id: Optional[int] = None
+
+class ProcessedTask(TaskBase):
+    pass
+
 class TaskOutput(BaseModel):
-    processed_task : List[ProcessedTask]
+    processed_tasks: List[ProcessedTask]
+
+class TaskDetail(TaskBase):
+    id: int
+    status: str
+    created_at: datetime
+    user_id: int
+
+    class Config:
+        from_attributes = True  # This enables ORM mode
+
+
+
+    
+
+    
