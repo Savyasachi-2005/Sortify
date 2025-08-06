@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, Request, Body
 from typing import List, Optional, Dict, Any
+from pydantic import validator
 import logging
 import time
 import random
@@ -20,6 +21,14 @@ class TransformRequest(BaseModel):
     
     class Config:
         extra = "forbid"  # Reject any extra fields
+        
+    @validator('tasks')
+    def validate_tasks(cls, v):
+        if not v:
+            raise ValueError("Tasks list cannot be empty")
+        if any(not task.strip() for task in v):
+            raise ValueError("Tasks cannot be empty strings")
+        return v
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -32,7 +41,7 @@ router=APIRouter(
 # No longer need server API key since users must provide their own
 
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
-MODEL = "moonshotai/kimi-dev-72b:free"
+MODEL = "z-ai/glm-4.5-air:free"  # More reliable for structured JSON output
 
 # Rate limiting cache: key = user_id, value = last request timestamp
 request_cache = TTLCache(maxsize=1000, ttl=60)  # 60 seconds TTL
@@ -209,10 +218,29 @@ def process_tasks(data: TransformRequest, current_user: User = Depends(get_curre
                 ai_reply = ai_reply[start_idx:]
         
         # Log the cleaned JSON for debugging
-        logger.info(f"Cleaned AI reply for parsing: {ai_reply[:50]}...")
+        logger.info(f"Full AI reply before parsing: {ai_reply}")
         
+        # Additional cleanup for common JSON formatting issues
+        ai_reply = ai_reply.replace('\n', ' ').replace('\r', '')  # Remove newlines
+        ai_reply = ai_reply.strip()
+        
+        # Try to find valid JSON in the response
         try:
-            processed_tasks = json.loads(ai_reply)
+            # First, try parsing as is
+            try:
+                processed_tasks = json.loads(ai_reply)
+            except json.JSONDecodeError:
+                # If that fails, try to find a JSON array in the text
+                start_idx = ai_reply.find('[')
+                end_idx = ai_reply.rfind(']') + 1
+                
+                if start_idx != -1 and end_idx > start_idx:
+                    potential_json = ai_reply[start_idx:end_idx]
+                    logger.info(f"Attempting to parse extracted JSON: {potential_json}")
+                    processed_tasks = json.loads(potential_json)
+                else:
+                    raise json.JSONDecodeError("No JSON array found in response", ai_reply, 0)
+            
             if not isinstance(processed_tasks, list):
                 raise ValueError("Expected a JSON array of tasks")
             
@@ -250,15 +278,43 @@ def process_tasks(data: TransformRequest, current_user: User = Depends(get_curre
             if not output:
                 raise ValueError("No valid tasks found in response")
             
-            logger.info(f"Successfully processed {len(output)} tasks")
-            return {"processed_tasks": output}
+            # Save tasks to database
+            from core.db import get_db
+            db = next(get_db())
+            from repo.task import create_task
+            
+            saved_tasks = []
+            for task in output:
+                saved_task = create_task(db, task, current_user.id)
+                saved_tasks.append({
+                    "id": saved_task.id,
+                    "original_task": saved_task.original_task,
+                    "smart_task": saved_task.smart_task,
+                    "priority": saved_task.priority,
+                    "created_at": saved_task.created_at.isoformat()
+                })
+            
+            logger.info(f"Successfully processed and saved {len(output)} tasks")
+            return {"processed_tasks": output, "saved_tasks": saved_tasks}
             
         except json.JSONDecodeError as json_err:
             logger.error(f"JSON parse error: {str(json_err)}")
             logger.error(f"Raw AI response: {ai_reply}")
+            
+            # Try to get a better error message by looking at the response content
+            error_msg = "Failed to parse AI response as JSON."
+            if "```json" in ai_reply:
+                error_msg += " Response contains code blocks that need cleaning."
+            elif "[" not in ai_reply or "]" not in ai_reply:
+                error_msg += " Response does not contain a JSON array."
+            elif "{" not in ai_reply or "}" not in ai_reply:
+                error_msg += " Response does not contain JSON objects."
+            else:
+                error_msg += " Invalid JSON format in response."
+            
             raise HTTPException(
                 status_code=500,
-                detail=f"Failed to parse AI response as JSON. Please try again."
+                detail=error_msg
             )
         except ValueError as val_err:
             logger.error(f"Validation error: {str(val_err)}")
@@ -295,9 +351,27 @@ def process_tasks(data: TransformRequest, current_user: User = Depends(get_curre
             )
     except Exception as e:
         logger.error(f"Unexpected error: {str(e)}")
-        if response:
+        logger.error(f"Error type: {type(e)}")
+        logger.error(f"Error traceback:", exc_info=True)
+        
+        # Log the state of variables
+        logger.error(f"Request body: {body}")
+        logger.error(f"API URL: {API_URL}")
+        logger.error(f"Headers (redacted): {
+            {k: '***' if k == 'Authorization' else v for k, v in headers.items()}
+        }")
+        
+        if 'response' in locals():
             logger.error(f"Response text: {response.text}")
+            logger.error(f"Response status: {response.status_code}")
+            logger.error(f"Response headers: {dict(response.headers)}")
+        
+        # Return more detailed error message
+        error_detail = str(e)
+        if len(error_detail) > 200:  # Truncate very long error messages
+            error_detail = error_detail[:200] + "..."
+            
         raise HTTPException(
             status_code=500,
-            detail="An unexpected error occurred. Please try again."
+            detail=f"An unexpected error occurred: {error_detail}"
         )

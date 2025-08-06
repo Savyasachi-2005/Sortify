@@ -21,6 +21,8 @@ const History = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedItems, setExpandedItems] = useState(new Set());
+  const [sortBy, setSortBy] = useState('date'); // 'date', 'priority'
+  const [filterPriority, setFilterPriority] = useState('all'); // 'all', 'High', 'Medium', 'Low'
 
   useEffect(() => {
     const lastTransformTime = localStorage.getItem('lastTransformTime');
@@ -68,10 +70,31 @@ const History = () => {
     }
   };
 
-  const filteredTasks = tasks.filter(task =>
-    task.original_task.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    task.smart_task.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filterAndSortTasks = () => {
+    let filtered = tasks.filter(task => {
+      const matchesSearch = 
+        task.original_task.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.smart_task.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesPriority = 
+        filterPriority === 'all' || task.priority === filterPriority;
+      
+      return matchesSearch && matchesPriority;
+    });
+
+    // Sort tasks
+    return filtered.sort((a, b) => {
+      if (sortBy === 'date') {
+        return new Date(b.created_at) - new Date(a.created_at);
+      } else if (sortBy === 'priority') {
+        const priorityOrder = { High: 3, Medium: 2, Low: 1 };
+        return priorityOrder[b.priority] - priorityOrder[a.priority];
+      }
+      return 0;
+    });
+  };
+
+  const filteredTasks = filterAndSortTasks();
 
   const toggleExpanded = (id) => {
     const newExpanded = new Set(expandedItems);
