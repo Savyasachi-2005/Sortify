@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Body
 from sqlalchemy.orm import Session
 from typing import List
 from schemas.task import ProcessedTask, TaskDetail
@@ -40,10 +40,14 @@ def remove_task(
 @router.patch("/{task_id}/status")
 def update_status(
     task_id: int,
-    status: str,
+    status_data: dict = Body(...),  # Expect JSON body with status field
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    status = status_data.get("status")
+    if not status:
+        raise HTTPException(status_code=400, detail="Status field is required")
+        
     task = update_task_status(db, task_id, current_user.id, status)
     if task:
         return {"message": "Task status updated successfully"}
