@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import appIcon from './icon.png';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -64,13 +65,13 @@ const Navbar = () => {
             className="flex items-center space-x-2 group"
             onClick={() => setIsOpen(false)}
           >
-            <motion.div
-              whileHover={{ rotate: 180 }}
-              transition={{ duration: 0.3 }}
-              className="w-8 h-8 bg-gradient-to-r from-primary-600 to-purple-600 rounded-lg flex items-center justify-center"
-            >
-              <Sparkles className="w-5 h-5 text-white" />
-            </motion.div>
+            <motion.img
+              whileHover={{ rotate: 6 }}
+              transition={{ duration: 0.2 }}
+              src={appIcon}
+              alt="SortIQ icon"
+              className="w-8 h-8 rounded-lg shadow-sm"
+            />
             <span className="text-xl font-bold gradient-text">SortIQ</span>
           </Link>
 

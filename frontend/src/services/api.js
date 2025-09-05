@@ -2,8 +2,14 @@ import axios from 'axios';
 import { refreshToken } from '../pages/TokenRefresh';
 
 // Create a custom axios instance
+const API_BASE =
+  (typeof window !== 'undefined' && (window.env && window.env.VITE_API_BASE_URL)) ||
+  import.meta.env.VITE_API_BASE_URL ||
+  process.env.VITE_API_BASE_URL ||
+  'http://localhost:8000';
+
 const api = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -111,6 +117,12 @@ export const deleteTask = (taskId) => {
 
 export const updateTaskStatus = (taskId, status) => {
   return api.patch(`/api/tasks/${taskId}/status`, { status });
+};
+
+// Create/save a task (manual entry uses same schema as processed task)
+export const saveTask = (task) => {
+  // expects: { original_task, smart_task, priority }
+  return api.post('/api/tasks/save', task);
 };
 
 export default api;

@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: sortiq-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: ALGORITHM
+        sync: false
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: MAIL_PORT
+        sync: false
+      - key: MAIL_SERVER
+        sync: false
+      - key: AI_API_KEY
+        sync: false
+      - key: ALLOW_ORIGINS
+        sync: false

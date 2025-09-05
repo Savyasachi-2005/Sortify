@@ -13,6 +13,8 @@ import {
   Rocket
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { SiFastapi, SiReact, SiTailwindcss } from 'react-icons/si';
+import appIcon from '../components/icon.png';
 
 const Home = () => {
   const { isAuthenticated } = useAuth();
@@ -93,14 +95,17 @@ const Home = () => {
             transition={{ duration: 0.8 }}
             className="text-center"
           >
-            <motion.div
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 mb-4">
+              <Sparkles className="w-4 h-4" /> AI-powered to-do list
+            </div>
+            <motion.img
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-primary-600 to-purple-600 rounded-full mb-8 shadow-lg"
-            >
-              <Sparkles className="w-8 h-8 text-white" />
-            </motion.div>
+              src={appIcon}
+              alt="SortIQ icon"
+              className="inline-block w-16 h-16 rounded-2xl mb-8 shadow-lg ring-1 ring-gray-200 dark:ring-gray-700"
+            />
             
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6">
               Transform Chaos into{' '}
@@ -138,7 +143,7 @@ const Home = () => {
             transition={{ delay: 0.8, duration: 0.8 }}
             className="mt-20 relative"
           >
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-4xl mx-auto border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-4xl mx-auto border border-gray-200 dark:border-gray-700 ring-1 ring-transparent hover:ring-purple-400/40 transition">
               <div className="grid md:grid-cols-2 gap-8">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
@@ -180,6 +185,15 @@ const Home = () => {
               </div>
             </div>
           </motion.div>
+
+          {/* Trusted by */}
+          <div className="mt-14 flex flex-wrap items-center justify-center gap-6 opacity-80">
+            {['Developers', 'Students', 'Makers', 'Teams'].map((t) => (
+              <div key={t} className="px-3 py-1.5 rounded-full text-xs bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+                Trusted by {t}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -263,6 +277,30 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Built With */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-800">
+        <div className="container max-w-7xl mx-auto w-full">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3">Developer-friendly</h2>
+            <p className="text-gray-600 dark:text-gray-300">Built with modern tools you love</p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-6 shadow-sm flex flex-col items-center">
+              <SiFastapi className="text-4xl text-emerald-500" />
+              <div className="mt-3 text-sm font-medium text-gray-900 dark:text-white">FastAPI</div>
+            </div>
+            <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-6 shadow-sm flex flex-col items-center">
+              <SiReact className="text-4xl text-sky-500" />
+              <div className="mt-3 text-sm font-medium text-gray-900 dark:text-white">React</div>
+            </div>
+            <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-6 shadow-sm flex flex-col items-center">
+              <SiTailwindcss className="text-4xl text-cyan-500" />
+              <div className="mt-3 text-sm font-medium text-gray-900 dark:text-white">Tailwind CSS</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-primary-600 to-purple-600">
         <div className="container max-w-7xl mx-auto w-full text-center">
@@ -298,9 +336,7 @@ const Home = () => {
           <div className="grid md:grid-cols-4 gap-8">
             <div className="col-span-2">
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-primary-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-white" />
-                </div>
+                <img src={appIcon} alt="SortIQ icon" className="w-8 h-8 rounded-lg" />
                 <span className="text-xl font-bold gradient-text">SortIQ</span>
               </div>
               <p className="text-gray-400 mb-4 max-w-md">

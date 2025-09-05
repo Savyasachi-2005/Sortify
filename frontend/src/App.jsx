@@ -28,51 +28,35 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={
-                  <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <Login />
-                  </div>
+                  <Login />
                 } />
                 <Route path="/signup" element={
-                  <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <Signup />
-                  </div>
+                  <Signup />
                 } />
                 <Route path="/verify-success" element={
-                  <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <VerifySuccess />
-                  </div>
+                  <VerifySuccess />
                 } />
                 <Route path="/features" element={
-                  <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <Features />
-                  </div>
+                  <Features />
                 } />
                 <Route path="/about" element={
-                  <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <About />
-                  </div>
+                  <About />
                 } />
                 <Route path="/contact" element={
-                  <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <Contact />
-                  </div>
+                  <Contact />
                 } />
                 <Route path="/transform" element={
                   <Transform />
                 } />
                 <Route path="/history" element={
-                  <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <History />
-                  </div>
+                  <History />
                 } />
                 {/* Add the Profile route with protection */}
                 <Route
                   path="/profile"
                   element={
                     <ProtectedRoute>
-                      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <Profile />
-                      </div>
+                      <Profile />
                     </ProtectedRoute>
                   }
                 />
@@ -80,9 +64,7 @@ function App() {
                   path="/dashboard"
                   element={
                     <ProtectedRoute>
-                      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <Dashboard />
-                      </div>
+                      <Dashboard />
                     </ProtectedRoute>
                   }
                 />

@@ -31,6 +31,7 @@ const Transform = () => {
   const [originalTasks, setOriginalTasks] = useState([]);
   const [processedTasks, setProcessedTasks] = useState([]);
   const [isEmailing, setIsEmailing] = useState(false);
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
   useEffect(() => {
     // Fetch user profile to get stored API key
@@ -43,7 +44,11 @@ const Transform = () => {
           }
         } catch (error) {
           console.error('Failed to fetch user profile:', error);
+        } finally {
+          setProfileLoaded(true);
         }
+      } else {
+        setProfileLoaded(true);
       }
     };
 
@@ -51,11 +56,13 @@ const Transform = () => {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    // Show API key modal on first login if no key is set
-    if (isAuthenticated && !apiKey) {
+    // Show API key modal after profile loads and only if no key is set
+    if (isAuthenticated && profileLoaded && !apiKey) {
       setShowApiKeyModal(true);
+    } else if (apiKey || !isAuthenticated) {
+      setShowApiKeyModal(false);
     }
-  }, [isAuthenticated, apiKey]);
+  }, [isAuthenticated, profileLoaded, apiKey]);
 
   const handleTransform = async () => {
     if (!isAuthenticated) {

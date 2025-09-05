@@ -25,10 +25,9 @@ const History = () => {
   const [filterPriority, setFilterPriority] = useState('all'); // 'all', 'High', 'Medium', 'Low'
 
   useEffect(() => {
-    const lastTransformTime = localStorage.getItem('lastTransformTime');
     fetchTasks();
     
-    // Set up interval to check for updates less frequently (every 30 seconds)
+  // Set up interval to check for updates less frequently (~every 8 minutes)
     const intervalId = setInterval(fetchTasks, 500000);
     
     return () => clearInterval(intervalId); // Cleanup on unmount
@@ -149,7 +148,7 @@ const History = () => {
 
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
