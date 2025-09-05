@@ -3,19 +3,46 @@ import { refreshToken } from '../pages/TokenRefresh';
 
 // Create a custom axios instance
 export const API_BASE = (() => {
-  const fromWindow = typeof window !== 'undefined' && window.env && window.env.VITE_API_BASE_URL;
-  const fromImportMeta = import.meta?.env?.VITE_API_BASE_URL;
-  const fromProcess = typeof process !== 'undefined' ? process.env?.VITE_API_BASE_URL : undefined;
-  const inferred = fromWindow || fromImportMeta || fromProcess;
+  const sources = {
+    windowNext: typeof window !== 'undefined' && window.env && window.env.NEXT_PUBLIC_API_URL,
+    importNext: import.meta?.env?.NEXT_PUBLIC_API_URL,
+    processNext: typeof process !== 'undefined' ? process.env?.NEXT_PUBLIC_API_URL : undefined,
+    windowVite: typeof window !== 'undefined' && window.env && window.env.VITE_API_BASE_URL,
+    importVite: import.meta?.env?.VITE_API_BASE_URL,
+    processVite: typeof process !== 'undefined' ? process.env?.VITE_API_BASE_URL : undefined,
+  };
 
-  if (inferred) return inferred;
+  const chosen =
+    sources.windowNext ||
+    sources.importNext ||
+    sources.processNext ||
+    sources.windowVite ||
+    sources.importVite ||
+    sources.processVite;
 
-  // If running on non-localhost and no env is set, default to Render URL
-  if (typeof window !== 'undefined' && window.location && window.location.hostname !== 'localhost') {
-    return 'https://sortify-y45h.onrender.com';
+  let resolved = chosen;
+  if (!resolved) {
+    // If not localhost (e.g., on Vercel/production), default to Render URL
+    if (typeof window !== 'undefined' && window.location && window.location.hostname !== 'localhost') {
+      resolved = 'https://sortify-y45h.onrender.com';
+    } else {
+      resolved = 'http://localhost:8000';
+    }
   }
 
-  return 'http://localhost:8000';
+  // Clear log for diagnostics
+  try {
+    // eslint-disable-next-line no-console
+    console.log('[API] Base URL resolved to:', resolved);
+    // eslint-disable-next-line no-console
+    console.log('[API] Source precedence:', {
+      NEXT_PUBLIC_API_URL: sources.windowNext || sources.importNext || sources.processNext || null,
+      VITE_API_BASE_URL: sources.windowVite || sources.importVite || sources.processVite || null,
+      hostname: typeof window !== 'undefined' ? window.location.hostname : 'server',
+    });
+  } catch {}
+
+  return resolved;
 })();
 
 const api = axios.create({

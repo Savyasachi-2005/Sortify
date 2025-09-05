@@ -105,7 +105,9 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       setError(null);
       
-      console.log('Sending signup data:', userData); // Debug log
+  // Clear, structured logs for diagnostics
+  console.log('[Auth] Sending signup data:', JSON.parse(JSON.stringify(userData)));
+  console.log('[Auth] Signup URL:', `${API_BASE_URL}/api/auth/signup`);
       
       const response = await axios.post(`${API_BASE_URL}/api/auth/signup`, userData, {
         headers: {
@@ -113,7 +115,7 @@ export const AuthProvider = ({ children }) => {
         },
       });
       
-      console.log('Signup response:', response.data); // Debug log
+  console.log('[Auth] Signup response:', response.data);
       
       const { user: userResponseData, access_token, refresh_token } = response.data;
       
@@ -127,7 +129,15 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true, user: userResponseData };
     } catch (err) {
-      console.error('Signup error:', err); // Debug log
+      // Log as much context as possible
+      console.error('[Auth] Signup error:', err);
+      if (err.response) {
+        console.error('[Auth] Error status:', err.response.status);
+        console.error('[Auth] Error headers:', err.response.headers);
+        console.error('[Auth] Error data:', err.response.data);
+      } else if (err.request) {
+        console.error('[Auth] No response received. Request details:', err.request);
+      }
       const errorMessage = getErrorMessage(err);
       setError(errorMessage);
       toast.error(errorMessage);
