@@ -4,8 +4,8 @@
     { "src": "package.json", "use": "@vercel/static-build", "config": { "distDir": "dist" } }
   ],
   "env": {
-  "VITE_API_BASE_URL": "https://your-backend.onrender.com",
-  "NEXT_PUBLIC_API_URL": "https://your-backend.onrender.com"
+  "VITE_API_BASE_URL": "https://sortify-y45h.onrender.com",
+  "NEXT_PUBLIC_API_URL": "https://sortify-y45h.onrender.com"
   },
   "rewrites": [
     { "source": "/(.*)", "destination": "/" }
