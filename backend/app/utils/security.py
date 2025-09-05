@@ -8,7 +8,7 @@ from ..core.db import get_db
 from ..models.user import User
 from sqlalchemy.orm import Session
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 def create_access_token(data: dict, expires_delta:timedelta=None):
     to_encode = data.copy()
     expire=datetime.now(timezone.utc)+(expires_delta or timedelta(minutes=settings.access_token_expire_minutes))

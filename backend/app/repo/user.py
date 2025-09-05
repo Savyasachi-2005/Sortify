@@ -29,3 +29,7 @@ class userRepo:
         if not Hash.verify(password,user.password):
             return None
         return user
+
+    @staticmethod
+    def get_by_email(db:Session, email:str):
+        return db.query(User).filter(User.email == email).first()

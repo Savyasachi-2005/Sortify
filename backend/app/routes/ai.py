@@ -13,7 +13,7 @@ import requests
 import json
 from cachetools import TTLCache
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+from urllib3.util.retry import Retry
 
 
 class TransformRequest(BaseModel):
