@@ -29,7 +29,7 @@ allow_credentials = not (len(origins) == 1 and origins[0] == "*")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],

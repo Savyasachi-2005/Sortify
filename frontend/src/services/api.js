@@ -2,11 +2,21 @@ import axios from 'axios';
 import { refreshToken } from '../pages/TokenRefresh';
 
 // Create a custom axios instance
-const API_BASE =
-  (typeof window !== 'undefined' && (window.env && window.env.VITE_API_BASE_URL)) ||
-  import.meta.env.VITE_API_BASE_URL ||
-  process.env.VITE_API_BASE_URL ||
-  'http://localhost:8000';
+export const API_BASE = (() => {
+  const fromWindow = typeof window !== 'undefined' && window.env && window.env.VITE_API_BASE_URL;
+  const fromImportMeta = import.meta?.env?.VITE_API_BASE_URL;
+  const fromProcess = typeof process !== 'undefined' ? process.env?.VITE_API_BASE_URL : undefined;
+  const inferred = fromWindow || fromImportMeta || fromProcess;
+
+  if (inferred) return inferred;
+
+  // If running on non-localhost and no env is set, default to Render URL
+  if (typeof window !== 'undefined' && window.location && window.location.hostname !== 'localhost') {
+    return 'https://sortify-y45h.onrender.com';
+  }
+
+  return 'http://localhost:8000';
+})();
 
 const api = axios.create({
   baseURL: API_BASE,

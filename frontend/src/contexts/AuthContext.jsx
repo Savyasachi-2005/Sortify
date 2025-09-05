@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE } from '../services/api';
 import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
@@ -61,7 +62,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const API_BASE_URL = 'http://localhost:8000';
+  const API_BASE_URL = API_BASE;
 
   // Configure axios defaults and restore session
   useEffect(() => {

@@ -568,68 +568,7 @@ const Transform = () => {
           </div>
         </motion.section>
         
-        {/* Testimonials */}
-        <motion.section
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.8 }}
-          className="mt-8 mb-12 sm:mb-16 bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 w-full overflow-hidden rounded-2xl"
-        >
-          <div className="px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
-            <div className="text-center mb-6 sm:mb-10">
-              <span className="inline-block px-3 sm:px-4 py-1 sm:py-2 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-300 font-medium text-xs sm:text-sm mb-3 sm:mb-4">
-                TESTIMONIALS
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-                What Our Users Are Saying
-              </h2>
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-              {[
-                {
-                  name: "Sarah Johnson",
-                  role: "Product Manager",
-                  image: "https://randomuser.me/api/portraits/women/12.jpg",
-                  content: "SortIQ has completely transformed how I manage my tasks. What used to take me 30 minutes of sorting now happens instantly."
-                },
-                {
-                  name: "Michael Chen",
-                  role: "Software Developer",
-                  image: "https://randomuser.me/api/portraits/men/32.jpg",
-                  content: "As someone who deals with countless tasks daily, this tool is a lifesaver. The AI categorization is surprisingly accurate."
-                },
-                {
-                  name: "Elena Rodriguez",
-                  role: "Freelance Designer",
-                  image: "https://randomuser.me/api/portraits/women/45.jpg",
-                  content: "The time estimates are incredibly helpful for my client work. I can now plan my week much more effectively."
-                }
-              ].map((testimonial, index) => (
-                <motion.div
-                  key={index}
-                  whileHover={{ y: -3 }}
-                  className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 flex flex-col h-full"
-                >
-                  <div className="mb-4 sm:mb-6">
-                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 italic">"{testimonial.content}"</p>
-                  </div>
-                  <div className="mt-auto flex items-center">
-                    <img 
-                      src={testimonial.image} 
-                      alt={testimonial.name} 
-                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full mr-3 sm:mr-4 border-2 border-primary-200 dark:border-primary-900"
-                    />
-                    <div>
-                      <h4 className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">{testimonial.name}</h4>
-                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{testimonial.role}</p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </motion.section>
+  {/* Testimonials removed */}
       </div>
 
       {/* Login Modal */}

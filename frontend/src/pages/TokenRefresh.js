@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_BASE } from '../services/api';
 
 // Function to refresh the token
 export const refreshToken = async () => {
@@ -9,7 +10,7 @@ export const refreshToken = async () => {
       throw new Error('No refresh token available');
     }
     
-    const response = await axios.post('http://localhost:8000/api/auth/refresh', {
+  const response = await axios.post(`${API_BASE}/api/auth/refresh`, {
       token: refreshToken
     });
     
