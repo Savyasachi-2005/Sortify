@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from ..repo.user import userRepo
 from sqlalchemy.orm import Session
 from ..core.db import get_db
@@ -16,7 +16,7 @@ router = APIRouter(
 )
 
 @router.post("/signup")
-async def register_user(user: UserCreate, db: Session = Depends(get_db)):
+async def register_user(user: UserCreate, db: Session = Depends(get_db), request: Request = None):
     try:
         print(f"Received user data: {user}")  # Debug log
         
@@ -45,7 +45,12 @@ async def register_user(user: UserCreate, db: Session = Depends(get_db)):
         
         # Generate tokens and send email
         token = email_access_token({"sub": create_user.email})
-        verification_link = f"http://localhost:8000/api/auth/verify-email?token={token}"
+        # Build verification link from current request base URL (works in dev and Render)
+        try:
+            base_url = str(request.base_url).rstrip('/') if request else 'http://localhost:8000'
+        except Exception:
+            base_url = 'http://localhost:8000'
+        verification_link = f"{base_url}/api/auth/verify-email?token={token}"
         subject = "Verify your email"
         body = f"Hi {create_user.username},\n\nClick the link below to verify your email:\n{verification_link}\n\nThanks!"
         

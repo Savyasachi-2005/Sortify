@@ -6,6 +6,7 @@ from ..utils.email_token import verify_email_token
 from ..utils.security import create_access_token  # Import this
 from sqlalchemy.orm import Session
 from ..models.user import User
+import os
 
 apirouter = APIRouter(
     prefix="/api/auth",
@@ -13,7 +14,7 @@ apirouter = APIRouter(
 )
 
 @apirouter.get("/verify-email", response_class=HTMLResponse)
-def verify_email(token: str, db: Session = Depends(get_db)):
+def verify_email(token: str, db: Session = Depends(get_db), request: Request = None):
     email = verify_email_token(token)
     if not email:
         return create_error_html("Invalid or expired verification link")
@@ -25,7 +26,17 @@ def verify_email(token: str, db: Session = Depends(get_db)):
     if user.is_active:
         # Already verified, redirect with auto-login
         access_token = create_access_token(data={"sub": user.email})
-        return RedirectResponse(url=f"http://localhost:3000/verify-success?token={access_token}")
+        frontend_base = os.getenv("FRONTEND_BASE_URL")
+        if not frontend_base:
+            try:
+                # Infer frontend from request host if known, else default to localhost
+                host = request.headers.get('x-forwarded-host') or request.client.host
+                scheme = request.headers.get('x-forwarded-proto') or request.url.scheme
+                # Fallback to default frontend
+                frontend_base = f"{scheme}://{host}" if host and scheme else "http://localhost:3000"
+            except Exception:
+                frontend_base = "http://localhost:3000"
+        return RedirectResponse(url=f"{frontend_base}/verify-success?token={access_token}")
 
     # Activate the user
     user.is_active = True
@@ -35,15 +46,23 @@ def verify_email(token: str, db: Session = Depends(get_db)):
     access_token = create_access_token(data={"sub": user.email})
     
     # Return HTML with redirect to frontend with token
-    return create_success_html("Email verification successful! Redirecting to login...", access_token)
+    frontend_base = os.getenv("FRONTEND_BASE_URL")
+    if not frontend_base:
+        try:
+            host = request.headers.get('x-forwarded-host') or request.client.host
+            scheme = request.headers.get('x-forwarded-proto') or request.url.scheme
+            frontend_base = f"{scheme}://{host}" if host and scheme else "http://localhost:3000"
+        except Exception:
+            frontend_base = "http://localhost:3000"
+    return create_success_html("Email verification successful! Redirecting to login...", access_token, frontend_base)
 
-def create_success_html(message, access_token):
+def create_success_html(message, access_token, frontend_base):
     return f"""
     <!DOCTYPE html>
     <html>
     <head>
         <title>Email Verification Successful</title>
-        <meta http-equiv="refresh" content="3;url=http://localhost:3000/verify-success?token={access_token}" />
+    <meta http-equiv="refresh" content="3;url={frontend_base}/verify-success?token={access_token}" />
         <style>
             body {{
                 font-family: Arial, sans-serif;
@@ -92,7 +111,7 @@ def create_success_html(message, access_token):
             <h1>Email Verification Successful</h1>
             <p>{message}</p>
             <p class="redirect-msg">You will be automatically logged in and redirected to SortIQ...</p>
-            <a href="http://localhost:3000/verify-success?token={access_token}" class="btn">
+            <a href="{frontend_base}/verify-success?token={access_token}" class="btn">
                 Continue to SortIQ
             </a>
         </div>
@@ -107,7 +126,7 @@ def create_error_html(error_message):
     <html>
     <head>
         <title>Email Verification Failed</title>
-        <meta http-equiv="refresh" content="5;url=http://localhost:3000/login" />
+    <meta http-equiv="refresh" content="5;url=/login" />
         <style>
             body {{
                 font-family: Arial, sans-serif;
@@ -156,7 +175,7 @@ def create_error_html(error_message):
             <h1>Verification Failed</h1>
             <p>{error_message}</p>
             <p class="redirect-msg">You will be redirected to the login page in 5 seconds...</p>
-            <a href="http://localhost:3000/login" class="btn">Go to Login</a>
+            <a href="/login" class="btn">Go to Login</a>
         </div>
     </body>
     </html>
