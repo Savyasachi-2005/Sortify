@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List
-from utils.security import get_current_user
-from models.user import User
-from utils.email_utils import send_verification_link
+from ..utils.security import get_current_user
+from ..models.user import User
+from ..utils.email_utils import send_verification_link
 import logging
 
 logger = logging.getLogger(__name__)

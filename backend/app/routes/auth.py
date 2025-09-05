@@ -1,12 +1,12 @@
 from fastapi import APIRouter,HTTPException,status,Depends
-from repo.user import userRepo
+from ..repo.user import userRepo
 from sqlalchemy.orm import Session
-from utils.security import create_access_token,refresh_access_token,get_current_user
-from core.db import get_db
-from schemas.token import token
-import schemas.token
+from ..utils.security import create_access_token,refresh_access_token,get_current_user
+from ..core.db import get_db
+from ..schemas.token import token
+from .. import schemas
 from fastapi.security import OAuth2PasswordRequestForm
-from core.config import settings
+from ..core.config import settings
 from jose import JWTError,jwt
 apirouter = APIRouter(
     prefix="/api/auth",

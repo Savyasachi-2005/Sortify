@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.sql import func
-from core.db import Base
+from ..core.db import Base
 
 class Task(Base):
     __tablename__ = "tasks"

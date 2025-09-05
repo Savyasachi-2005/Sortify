@@ -1,11 +1,11 @@
 # routers/auth.py
-from core.db import get_db
+from ..core.db import get_db
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from utils.email_token import verify_email_token
-from utils.security import create_access_token  # Import this
+from ..utils.email_token import verify_email_token
+from ..utils.security import create_access_token  # Import this
 from sqlalchemy.orm import Session
-from models.user import User
+from ..models.user import User
 
 apirouter = APIRouter(
     prefix="/api/auth",

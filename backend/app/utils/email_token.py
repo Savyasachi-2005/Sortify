@@ -1,6 +1,6 @@
 from datetime import datetime,timezone,timedelta
 from jose import JWTError,jwt
-from core.config import settings
+from ..core.config import settings
 
 
 def email_access_token(data: dict):

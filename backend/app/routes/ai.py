@@ -5,9 +5,9 @@ import logging
 import time
 import random
 from datetime import datetime, timedelta
-from utils.security import get_current_user
-from models.user import User
-from schemas.task import TaskInput, TaskOutput, ProcessedTask, TaskDetail
+from ..utils.security import get_current_user
+from ..models.user import User
+from ..schemas.task import TaskInput, TaskOutput, ProcessedTask, TaskDetail
 from pydantic import BaseModel
 import requests
 import json
@@ -279,9 +279,9 @@ def process_tasks(data: TransformRequest, current_user: User = Depends(get_curre
                 raise ValueError("No valid tasks found in response")
             
             # Save tasks to database
-            from core.db import get_db
+            from ..core.db import get_db
             db = next(get_db())
-            from repo.task import create_task
+            from ..repo.task import create_task
             
             saved_tasks = []
             for task in output:

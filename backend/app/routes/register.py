@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from repo.user import userRepo
+from ..repo.user import userRepo
 from sqlalchemy.orm import Session
-from core.db import get_db
-from schemas.user import UserCreate, UserOut, UserLogin
-from utils.email_utils import send_verification_link
-from utils.email_token import email_access_token
-from utils.security import create_access_token
-from models.user import User
+from ..core.db import get_db
+from ..schemas.user import UserCreate, UserOut, UserLogin
+from ..utils.email_utils import send_verification_link
+from ..utils.email_token import email_access_token
+from ..utils.security import create_access_token
+from ..models.user import User
 from pydantic import ValidationError
 import traceback
 
